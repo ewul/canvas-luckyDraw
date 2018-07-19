@@ -96,7 +96,7 @@
         </div>
     </div>
 
-    <button style="position: absolute; bottom: 1vh; left: auto;" onclick="init()">全部清空</button>
+    <button style="position: absolute; bottom: 1vh; left: auto;" onclick="init();renderResult();">全部清空</button>
 </div>
 
 </body>
@@ -114,21 +114,22 @@
         window.localStorage.setItem('specMember', '魏志强');
 
         $('#main button').show();
-        renderResult();
+
         $('#titleSpan').text('等待选取抽奖等级。');
     };
 
-    if (window.localStorage.getItem('allMembers') === null) {
-        init();
-    }
-
-    var members = window.localStorage.getItem('allMembers').split(',');
-
-    if (Array.isArray(members) && members.length > 0) {
-        members = members.map(function (member, index, all) {
-            return {type: 'text', content: member};
-        })
-    }
+    var shuffle = function(arr) {
+        var i,
+            j,
+            temp;
+        for (i = arr.length - 1; i > 0; i--) {
+            j = Math.floor(Math.random() * (i + 1));
+            temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+        return arr;
+    };
 
     var renderWheel = function () {
 
@@ -145,6 +146,7 @@
             canvas.width = canvasDiv.width();
             canvas.height = canvasDiv.height();
 
+            members = shuffle(members);
 
             new RouletteWheel({
                 centerX: canvas.width / 2,
@@ -152,48 +154,58 @@
                 outsideRadius: canvas.height * 0.8 / 2,
 
                 awards: members,
-                duration: 200,
+                duration: 20000,
                 velocity: 10,
 
                 finish: function (index) {
 
-                    //alert('🎉恭喜' + members[index].content + '中奖!!🎉  '+index);
+                    alert('🎉恭喜' + members[index].content + '中奖!!🎉  ');
 
-                    var selectMember = members[index];
-                    var lucky = JSON.parse(window.localStorage.getItem("lucky"));
-                    if (lucky === null) {
-                        lucky = {};
-                    }
-
-                    var drawingInfo = JSON.parse(window.localStorage.getItem("drawingInfo"));
-                    drawingInfo['remainderNumber'] -= 1;
-                    window.localStorage.setItem('drawingInfo', JSON.stringify(drawingInfo));
-
-                    if (lucky[drawingInfo['startingGroup']] === undefined) {
-                        lucky[drawingInfo['startingGroup']] = [];
-                    }
-                    lucky[drawingInfo['startingGroup']].push(selectMember.content);
-                    window.localStorage.setItem('lucky', JSON.stringify(lucky));
-
-                    renderResult();
-
-                    // 删除中奖人
-                    members.splice(index, 1);
-
-                    if (drawingInfo['remainderNumber'] > 0) {
-                        renderWheel();
-                    } else {
-                        $('#canvasDiv').html("");
-                    }
-
+                    renderResult(index);
                 }
             }).render(canvas, context);
 
         }, 100);
     };
 
-    var renderResult = function () {
+    var renderResult = function (selectMemberIndex) {
         var lucky = JSON.parse(window.localStorage.getItem("lucky"));
+        if (lucky === null) {
+            lucky = {};
+        }
+
+        var drawingInfo = JSON.parse(window.localStorage.getItem("drawingInfo"));
+        if (drawingInfo === null) {
+            drawingInfo = {};
+        }
+
+        if(selectMemberIndex !== undefined) {
+            var selectMember = members[selectMemberIndex];
+            drawingInfo['remainderNumber'] -= 1;
+            window.localStorage.setItem('drawingInfo', JSON.stringify(drawingInfo));
+
+            if (lucky[drawingInfo['startingGroup']] === undefined) {
+                lucky[drawingInfo['startingGroup']] = [];
+            }
+            lucky[drawingInfo['startingGroup']].push(selectMember.content);
+            window.localStorage.setItem('lucky', JSON.stringify(lucky));
+
+            // 删除中奖人
+            members.splice(selectMemberIndex, 1);
+        } else {
+            $('#canvasDiv').html("");
+
+        }
+        if (drawingInfo.hasOwnProperty('remainderNumber')){
+            if(drawingInfo['remainderNumber'] > 0){
+                renderWheel();
+            } else {
+                setTimeout(function () {
+                    $('#canvasDiv').html("");
+                },500);
+            }
+        }
+
         $("#resultDiv div.item").remove();
         for (var level in lucky) {
             $($("#resultDiv div.head")[level]).find("button").hide();
@@ -207,8 +219,6 @@
 
         }
     };
-
-    renderResult();
 
 
     var groupStart = function (button, group, number) {
@@ -233,7 +243,21 @@
         renderWheel();
 
 
+    };
+
+    if (window.localStorage.getItem('allMembers') === null) {
+        init();
     }
+
+    var members = window.localStorage.getItem('allMembers').split(',');
+
+    if (Array.isArray(members) && members.length > 0) {
+        members = members.map(function (member, index, all) {
+            return {type: 'text', content: member};
+        })
+    }
+
+    renderResult();
 
 
 </script>
