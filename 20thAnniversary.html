@@ -15,23 +15,27 @@
             border: 1px solid black;
             display: flex;
         }
+
         #canvasDiv {
             width: 60%;
-            background-color:peachpuff;
+            background-color: peachpuff;
         }
+
         #resultDiv {
-            flex:1;
+            flex: 1;
             display: flex;
             flex-direction: column;
             background-color: peachpuff;
         }
-        div.head {
+
+        div.head, div.items {
             text-align: left;
             vertical-align: top;
             display: flex;
             flex-direction: column;
             color: red;
         }
+
         div.item {
             flex: 1;
             text-align: center;
@@ -44,61 +48,60 @@
 </head>
 
 <body>
-    <div id='main'>
-        <div id='canvasDiv' style=''>
-            <span id="titleSpan">等待选取抽奖等级。</span>
-            <canvas id='canvas'></canvas>
-        </div>
+<div id='main'>
 
-        <div id="resultDiv" style=''>
-            <div class="head">
-                特等奖（1人）：<button onclick="groupStart(this, 0, 1)">开始抽奖</button>
-            </div>
-            <div class="head">
-                <div class="item"></div>
-            </div>
-            <div class="head">
-                一等奖（2人）：<button onclick="groupStart(this, 1, 2)">开始抽奖</button>
-            </div>
-            <div class="head">
-                <div class="item"></div>
-                <div class="item"></div>
-            </div>
-            <div class="head">
-                二等奖（4人）：<button onclick="groupStart(this, 2, 4)">开始抽奖</button>
-            </div>
-            <div class="head">
-                <div class="item"></div>
-                <div class="item"></div>
-                <div class="item"></div>
-                <div class="item"></div>
-            </div>
-            <div class="head">
-                三等奖（6人）：<button onclick="groupStart(this, 3, 6)">开始抽奖</button>
-            </div>
-            <div class="head">
-                <div class="item"></div>
-                <div class="item"></div>
-                <div class="item"></div>
-                <div class="item"></div>
-                <div class="item"></div>
-                <div class="item"></div>
-            </div>
-        </div>
+    <span style="position: absolute; top: 1vh; left: auto;" id="titleSpan">等待选取抽奖等级。</span>
 
-        <button style="position: absolute; bottom: 1vh; left: auto;" onclick="init()">全部清空</button>
+    <div id='canvasDiv' style=''>
+        <!--<canvas id='canvas'></canvas>-->
     </div>
+
+    <div id="resultDiv" style=''>
+        <div class="head">
+            特等奖（1人）：
+            <button onclick="groupStart(this, 0, 1)">开始抽奖</button>
+        </div>
+        <div class="items">
+            <div class="item"></div>
+        </div>
+        <div class="head">
+            一等奖（2人）：
+            <button onclick="groupStart(this, 1, 2)">开始抽奖</button>
+        </div>
+        <div class="items">
+            <div class="item"></div>
+            <div class="item"></div>
+        </div>
+        <div class="head">
+            二等奖（4人）：
+            <button onclick="groupStart(this, 2, 4)">开始抽奖</button>
+        </div>
+        <div class="items">
+            <div class="item"></div>
+            <div class="item"></div>
+            <div class="item"></div>
+            <div class="item"></div>
+        </div>
+        <div class="head">
+            三等奖（6人）：
+            <button onclick="groupStart(this, 3, 6)">开始抽奖</button>
+        </div>
+        <div class="items">
+            <div class="item"></div>
+            <div class="item"></div>
+            <div class="item"></div>
+            <div class="item"></div>
+            <div class="item"></div>
+            <div class="item"></div>
+        </div>
+    </div>
+
+    <button style="position: absolute; bottom: 1vh; left: auto;" onclick="init()">全部清空</button>
+</div>
 
 </body>
 <script src='./src/dist/luckyDraw.min.js'></script>
 <script>
-    var canvas = document.getElementById('canvas'),
-        context = canvas.getContext('2d');
-
-    var canvasDiv = document.getElementById('canvasDiv');
-    canvas.width = canvasDiv.clientWidth;
-    canvas.height = canvasDiv.clientHeight;
-
     var init = function () {
 
         window.localStorage.clear();
@@ -111,99 +114,119 @@
         window.localStorage.setItem('specMember', '魏志强');
 
         $('#main button').show();
+        renderResult();
         $('#titleSpan').text('等待选取抽奖等级。');
     };
 
-    if(window.localStorage.getItem('allMembers') === null){
+    if (window.localStorage.getItem('allMembers') === null) {
         init();
     }
 
     var members = window.localStorage.getItem('allMembers').split(',');
 
-    if(Array.isArray(members) && members.length > 0){
+    if (Array.isArray(members) && members.length > 0) {
         members = members.map(function (member, index, all) {
-            return { type: 'text', content: member};
+            return {type: 'text', content: member};
         })
     }
 
-    var renderWheel = function(){
+    var renderWheel = function () {
 
-        var rouletteWheel = new RouletteWheel({
-            centerX:       canvas.width / 2,
-            centerY:       canvas.height / 2,
-            outsideRadius: canvas.height * 0.8 / 2,
+        var canvasDiv = $('#canvasDiv');
+        canvasDiv.html("");
+        canvasDiv.append($('<canvas id="canvas">'));
 
-            awards: members,
-            duration: 200,
-            velocity: 10,
 
-            finish: function (index) {
+        setTimeout(function () {
 
-                alert('🎉恭喜' + members[index].content + '中奖!!🎉  '+index);
+            var canvas = document.getElementById('canvas'),
+                context = canvas.getContext('2d');
 
-                var selectMember = members[index];
-                var lucky = JSON.parse(window.localStorage.getItem("lucky"));
-                if(lucky === null) {
-                    lucky = {};
+            canvas.width = canvasDiv.width();
+            canvas.height = canvasDiv.height();
+
+
+            new RouletteWheel({
+                centerX: canvas.width / 2,
+                centerY: canvas.height / 2,
+                outsideRadius: canvas.height * 0.8 / 2,
+
+                awards: members,
+                duration: 200,
+                velocity: 10,
+
+                finish: function (index) {
+
+                    //alert('🎉恭喜' + members[index].content + '中奖!!🎉  '+index);
+
+                    var selectMember = members[index];
+                    var lucky = JSON.parse(window.localStorage.getItem("lucky"));
+                    if (lucky === null) {
+                        lucky = {};
+                    }
+
+                    var drawingInfo = JSON.parse(window.localStorage.getItem("drawingInfo"));
+                    drawingInfo['remainderNumber'] -= 1;
+                    window.localStorage.setItem('drawingInfo', JSON.stringify(drawingInfo));
+
+                    if (lucky[drawingInfo['startingGroup']] === undefined) {
+                        lucky[drawingInfo['startingGroup']] = [];
+                    }
+                    lucky[drawingInfo['startingGroup']].push(selectMember.content);
+                    window.localStorage.setItem('lucky', JSON.stringify(lucky));
+
+                    renderResult();
+
+                    // 删除中奖人
+                    members.splice(index, 1);
+
+                    if (drawingInfo['remainderNumber'] > 0) {
+                        renderWheel();
+                    } else {
+                        $('#canvasDiv').html("");
+                    }
+
                 }
+            }).render(canvas, context);
 
-                var drawingInfo = JSON.parse(window.localStorage.getItem("drawingInfo"));
-                drawingInfo['remainderNumber'] -= 1;
-                window.localStorage.setItem('drawingInfo', JSON.stringify(drawingInfo));
-
-                if(lucky[drawingInfo['startingGroup']] === undefined){
-                    lucky[drawingInfo['startingGroup']] = [];
-                }
-                lucky[drawingInfo['startingGroup']].push(selectMember.content);
-                window.localStorage.setItem('lucky', JSON.stringify(lucky));
-
-                renderResult();
-
-                // 删除中奖人
-                members.splice(index, 1);
-
-                if(drawingInfo['remainderNumber'] > 0){
-                    canvas.hidden = false;
-                    renderWheel();
-                }else {
-                    canvas.hidden = true;
-                }
-
-            }
-        });
-        rouletteWheel.render(canvas, context);
+        }, 100);
     };
 
     var renderResult = function () {
         var lucky = JSON.parse(window.localStorage.getItem("lucky"));
-
-        for(var level in lucky){
-            if(lucky.hasOwnProperty(level)){
-                for(var i=0; i< lucky[level]; i++){
-                    console.log(lucky[level][i]);
+        $("#resultDiv div.item").remove();
+        for (var level in lucky) {
+            $($("#resultDiv div.head")[level]).find("button").hide();
+            var targetDiv = $("#resultDiv div.items")[level];
+            if (lucky.hasOwnProperty(level)) {
+                for (var i = 0; i < lucky[level].length; i++) {
+                    //console.log(lucky[level][i]);
+                    $(targetDiv).append($('<div class="item">').append('🎉' + lucky[level][i] + '🎉'));
                 }
             }
 
         }
     };
 
+    renderResult();
 
-    var groupStart = function(button, group, number){
+
+    var groupStart = function (button, group, number) {
         $(button).hide();
         window.localStorage.setItem('drawingInfo', JSON.stringify({startingGroup: group, remainderNumber: number}));
 
-        switch(group){
+        switch (group) {
             case 0:
-                $('#titleSpan').text('正在抽取特等奖，剩余' + number + '个。');
+                $('#titleSpan').text('正在抽取特等奖。');
                 break;
             case 1:
-                $('#titleSpan').text('正在抽取一等奖，剩余' + number + '个。');
+                $('#titleSpan').text('正在抽取一等奖。');
                 break;
             case 2:
-                $('#titleSpan').text('正在抽取二等奖，剩余' + number + '个。');
+                $('#titleSpan').text('正在抽取二等奖。');
                 break;
             case 3:
-                $('#titleSpan').text('正在抽取三等奖，剩余' + number + '个。');
+                $('#titleSpan').text('正在抽取三等奖。');
                 break;
         }
 
